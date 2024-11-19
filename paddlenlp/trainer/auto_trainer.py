@@ -130,8 +130,8 @@ class AutoTrainer(Trainer):
             self.optimizer = dist.shard_optimizer(
                 self.optimizer, dist.ShardingStage3(), self.args.gradient_accumulation_steps
             )
-        else:
-            self.optimizer = dist.shard_optimizer(self.optimizer, None, self.args.gradient_accumulation_steps)
+        # else:
+        #     self.optimizer = dist.shard_optimizer(self.optimizer, None, self.args.gradient_accumulation_steps)
 
         if self.args.to_static:
             unified_strategy = dist.Strategy()
@@ -336,6 +336,14 @@ class AutoTrainer(Trainer):
 
         if resume_from_checkpoint is not None:
             self._load_from_checkpoint(resume_from_checkpoint)
+
+        print("***********wangnian print model")
+        for n,p in model.named_parameters():
+            if p._is_initialized():
+                if p.is_dist():
+                    print(f"{n}    shape: {p._local_value().shape}, md5sum: {p._local_value()._md5sum()}, process_mesh: {p.process_mesh}")
+                else:
+                    print(f"{n}    shape: {p.shape}, md5sum: {p._md5sum()}")
 
         self.timers and self.timers("read-data").start()
 
