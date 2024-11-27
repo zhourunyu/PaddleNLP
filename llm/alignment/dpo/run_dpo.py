@@ -117,7 +117,9 @@ def main():
         model_class = AutoModelForCausalLMPipe
     else:
         model_class = AutoModelForCausalLM
-    if not training_args.autotuner_benchmark or model_args.weight_quantize_algo is not None:
+    if training_args.continue_training and (
+        not training_args.autotuner_benchmark or model_args.weight_quantize_algo is not None
+    ):
         model = model_class.from_pretrained(**model_kwargs)
         # for DPO save
         model.config.dpo_config = None
@@ -131,6 +133,9 @@ def main():
         config = AutoConfig.from_pretrained(**model_kwargs)
         model = model_class.from_config(config, dtype=dtype)
         if not dpo_config.reference_free and not dpo_config.lora:
+            # NOTE(gongenlei): architectures will be None after from_config,
+            # so, we need from_pretrained to create new config.
+            config = AutoConfig.from_pretrained(**model_kwargs)
             ref_model = model_class.from_config(config, dtype=dtype)
         else:
             ref_model = None
