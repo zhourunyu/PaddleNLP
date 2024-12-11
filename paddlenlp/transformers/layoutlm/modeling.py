@@ -82,7 +82,7 @@ class LayoutLMEmbeddings(Layer):
         # input_shape = input_ids.size()
         # seq_length = input_shape[1]
         if position_ids is None:
-            ones = paddle.ones_like(input_ids, dtype="int64")
+            ones = paddle.ones_like(input_ids, dtype="int32")
             seq_length = paddle.cumsum(ones, axis=-1)
 
             position_ids = seq_length - ones
