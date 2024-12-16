@@ -85,7 +85,7 @@ class BertEmbeddings(Layer):
     ):
 
         if position_ids is None:
-            ones = paddle.ones_like(input_ids, dtype="int64")
+            ones = paddle.ones_like(input_ids, dtype="int32")
             seq_length = paddle.cumsum(ones, axis=-1)
 
             position_ids = seq_length - ones
@@ -93,7 +93,7 @@ class BertEmbeddings(Layer):
                 position_ids += past_key_values_length
             position_ids.stop_gradient = True
         if token_type_ids is None:
-            token_type_ids = paddle.zeros_like(input_ids, dtype="int64")
+            token_type_ids = paddle.zeros_like(input_ids, dtype="int32")
 
         input_embedings = self.word_embeddings(input_ids)
         position_embeddings = self.position_embeddings(position_ids)

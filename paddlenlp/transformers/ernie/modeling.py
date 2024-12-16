@@ -101,7 +101,7 @@ class ErnieEmbeddings(nn.Layer):
 
         if position_ids is None:
             # maybe need use shape op to unify static graph and dynamic graph
-            ones = paddle.ones(input_shape, dtype="int64")
+            ones = paddle.ones(input_shape, dtype="int32")
             seq_length = paddle.cumsum(ones, axis=1)
             position_ids = seq_length - ones
 
@@ -115,13 +115,13 @@ class ErnieEmbeddings(nn.Layer):
 
         if self.type_vocab_size > 0:
             if token_type_ids is None:
-                token_type_ids = paddle.zeros(input_shape, dtype="int64")
+                token_type_ids = paddle.zeros(input_shape, dtype="int32")
             token_type_embeddings = self.token_type_embeddings(token_type_ids)
             embeddings = embeddings + token_type_embeddings
 
         if self.use_task_id:
             if task_type_ids is None:
-                task_type_ids = paddle.ones(input_shape, dtype="int64") * self.task_id
+                task_type_ids = paddle.ones(input_shape, dtype="int32") * self.task_id
             task_type_embeddings = self.task_type_embeddings(task_type_ids)
             embeddings = embeddings + task_type_embeddings
         embeddings = self.layer_norm(embeddings)

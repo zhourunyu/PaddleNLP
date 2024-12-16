@@ -785,7 +785,7 @@ class GPTLayerNorm(OriginLayerNorm):
     def forward(self, input):
         if self.config.use_fast_layer_norm:
             return fast_layer_norm(input, self.weight, self.bias, self._epsilon)
-        return super().forward(input)
+        return super(GPTLayerNorm, self).forward(input)
 
 
 class GPTPretrainedModel(PretrainedModel):
