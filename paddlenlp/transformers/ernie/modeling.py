@@ -101,7 +101,7 @@ class ErnieEmbeddings(nn.Layer):
 
         if position_ids is None:
             # maybe need use shape op to unify static graph and dynamic graph
-            ones = paddle.ones(input_shape, dtype="int64")
+            ones = paddle.ones(input_shape, dtype="int32")
             seq_length = paddle.cumsum(ones, axis=1)
             position_ids = seq_length - ones
 
