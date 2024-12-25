@@ -35,14 +35,14 @@ try:
 except ImportError:
     fused_rotary_position_embedding = None
 
-try:
-    from paddle.incubate.nn.functional import swiglu
-except ImportError:
+# try:
+#     from paddle.incubate.nn.functional import swiglu
+# except ImportError:
 
-    def swiglu(x, y=None):
-        if y is None:
-            x, y = paddle.chunk(x, chunks=2, axis=-1)
-        return F.silu(x) * y
+def swiglu(x, y=None):
+    if y is None:
+        x, y = paddle.chunk(x, chunks=2, axis=-1)
+    return F.silu(x) * y
 
 
 try:
@@ -321,7 +321,7 @@ def _make_causal_mask(input_ids_shape, past_key_values_length):
     if get_env_device() == "npu":
         mask = paddle.tril(paddle.ones((target_length, target_length))).astype("int32")
     else:
-        mask = paddle.tril(paddle.ones((target_length, target_length), dtype="bool"))
+        mask = paddle.tril(paddle.ones((target_length, target_length), dtype="int32")).astype("bool")
 
     if past_key_values_length > 0:
         # [tgt_len, tgt_len + past_len]
@@ -532,6 +532,8 @@ def apply_rotary_pos_emb(q, k, cos, sin, position_ids):
         sin = sin.squeeze(axis=[0, 2])  # [seq_len, dim]
         cos = cos[position_ids].unsqueeze(2)  # [bs, seq_len, 1, dim]
         sin = sin[position_ids].unsqueeze(2)  # [bs, seq_len, 1, dim]
+    cos = cos.expand_as(q)
+    sin = sin.expand_as(q)
     q_embed = (q * cos) + (rotate_half(q) * sin)
     k_embed = (k * cos) + (rotate_half(k) * sin)
     return q_embed, k_embed
@@ -1445,7 +1447,9 @@ class LlamaModel(LlamaPretrainedModel):
             expanded_attn_mask = expanded_attn_mask.astype(dtype)
             expanded_attn_mask = paddle.where(expanded_attn_mask, x, y).astype(dtype)
         else:
-            expanded_attn_mask = paddle.where(expanded_attn_mask, 0.0, paddle.finfo(dtype).min).astype(dtype)
+            x = paddle.full_like(expanded_attn_mask, 0.0, dtype=dtype)
+            y = paddle.full_like(expanded_attn_mask, paddle.finfo(dtype).min, dtype=dtype)
+            expanded_attn_mask = paddle.where(expanded_attn_mask, x, y).astype(dtype)
         return expanded_attn_mask
 
     @paddle.jit.not_to_static
